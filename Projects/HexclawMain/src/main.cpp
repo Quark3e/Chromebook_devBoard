@@ -13,7 +13,7 @@
 
 bool useAccel   = true;
 bool useWiFi    = false;
-bool useTFTscr  = false;
+bool useTFTscr  = true;
 
 #define TFT_RST		D4		// TFT RST	pin is connected to NodeMCU pin D4 (GPIO02)
 #define TFT_CS		D3		// TFT CS	pin is connected to NodeMCU pin D3 (GPIO00)
