@@ -117,8 +117,8 @@ void readAccelerometer() {
 
     accel.getEvent(&event);
 
-    X_out = event.acceleration.x/10;
-    Y_out = event.acceleration.y/10;
+    Y_out = -event.acceleration.x/10;
+    X_out = -event.acceleration.y/10;
     Z_out = event.acceleration.z/10;
 
     totStr = "read ["+String(X_out,2)+" "+String(Y_out,2)+" "+String(Z_out,2)+"]";
