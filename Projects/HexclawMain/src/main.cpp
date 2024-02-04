@@ -123,10 +123,6 @@ void readAccelerometer() {
 
     totStr = "read ["+String(X_out,2)+" "+String(Y_out,2)+" "+String(Z_out,2)+"]";
 
-    // Serial.print("read; [");
-    // Serial.print(String(X_out, 2)); Serial.print(" ");
-    // Serial.print(String(Y_out, 2)); Serial.print(" ");
-    // Serial.print(String(Z_out, 2)); Serial.println("]");
     Serial.println(totStr);
 
 }
