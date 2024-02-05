@@ -11,13 +11,21 @@
 
 bool useAccel   = true;
 bool useWiFi    = false;
-bool useTFTscr  = true;
+bool useTFTscr  = false;
 
 #define TFT_RST		4		// TFT RST	pin is connected to NodeMCU pin D4 (GPIO02)
 #define TFT_CS		8		// TFT CS	pin is connected to NodeMCU pin D3 (GPIO00)
 #define TFT_DC		6 //EXPERIMENTAL: WORKS: 2		// TFT DC	pin is connected to NodeMCU pin D2 (GPIO04)
 
-int ledPin = 3;
+int ledPin = 4;
+
+
+float accelLim[3] = {
+    1.5,
+    1.5,
+    0
+};
+
 
 Adafruit_ST7735 tftObj = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
@@ -56,11 +64,12 @@ void setup() {
     delay(500);
     digitalWrite(ledPin, LOW);
 
-    if(useAccel && !accel.begin()) {
+    if(useAccel) {
         /*TherewasaproblemdetectingtheADXL345...checkyourconnections*/
-        Serial.println("Ooops, no ADXL345 detected...Check your wiring!");
-        while(1);
-    
+        while(!accel.begin()) {
+            Serial.println("Ooops, no ADXL345 detected...Check your wiring!");
+            delay(1000);
+        }
         
         /*Settherangetowhateverisappropriateforyourproject*/
         accel.setRange(ADXL345_RANGE_16_G);
@@ -98,15 +107,21 @@ void readAccelerometer() {
     Y_out = event.acceleration.y/10;
     Z_out = event.acceleration.z/10;
 
+    if(Y_out>accelLim[1]) {
+        digitalWrite(ledPin, HIGH);
+        delay(100);
+    }
+    else {
+        digitalWrite(ledPin, LOW);
+    }
+
     totStr = "read ["+String(X_out,2)+" "+String(Y_out,2)+" "+String(Z_out,2)+"]";
-
     Serial.println(totStr);
-
 }
 
 
 void loop() {
-    if(useAccel) analogWrite(A6, float(angle)/361*1024);
+    if(useAccel) digitalWrite(ledPin, LOW);
 
     if(useAccel) readAccelerometer();
     
