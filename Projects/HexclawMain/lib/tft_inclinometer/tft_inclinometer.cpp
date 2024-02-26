@@ -144,8 +144,7 @@ void tftInclinometer_ST7735::tftSetup()
     tftPtr->setRotation(1);
     
 }
-void tftInclinometer_ST7735::solveOrients()
-{
+void tftInclinometer_ST7735::solveOrients() {
     orient[0]   = toDegrees( atan(accel[1] / sqrt(pow(accel[0],2)+pow(accel[2],2))) ); //degrees
     orient[1]   = toDegrees( atan(-1 * accel[0] / sqrt(pow(accel[1],2)+pow(accel[2],2))) ); //degrees
     if(accel[2]<0) {

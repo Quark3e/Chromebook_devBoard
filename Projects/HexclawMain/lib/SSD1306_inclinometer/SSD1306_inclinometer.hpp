@@ -2,6 +2,8 @@
 #ifndef HPP_SSD1306_INCLINOMETER
 #define HPP_SSD1306_INCLINOMETER
 
+#include <math.h>
+
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -15,10 +17,39 @@
 
 class oledInclinometer_SSD1306 {
     Adafruit_SSD1306 *displayPtr;
+    Adafruit_SSD1306 display;
 
+    bool pointerInitialized = false;
 
+    int rollPos[2]      = {65, 5};
+    int pitchPos[2]     = {65, 20};
+    int accelPos[3][2]  = {
+        {5, 5},
+        {5, 15},
+        {5, 25},
+    };
+    public:
+    float offset_accel[3] = {0, 0, 0};
+    
+    float accel[3]  = {0.1, 0.1, 0.1};
+    float orient[2] = {0, 0};
+    
+    float toRadians(float degrees);
+    float toDegrees(float radians);
+    oledInclinometer_SSD1306();
     oledInclinometer_SSD1306(Adafruit_SSD1306 *oled_pointer);
 
+    void setup();
+    void drawAccel();
+    void drawRoll();
+    void drawPitch();
+
+    void solveOrients();
+
+    void setAccel(float x, float y, float z);
+
+    void update();
+    void update(float xAccel, float yAccel, float zAccel);
 };
 
 
