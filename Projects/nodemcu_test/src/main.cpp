@@ -1,16 +1,21 @@
 #include <Arduino.h>
+
 #include <Adafruit_GFX.h>      // include Adafruit graphics library
 #include <Adafruit_ST7735.h>   // include Adafruit ST7735 TFT library
+
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 #include <Arduino_JSON.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+
 #include <Fonts/FreeMonoBold12pt7b.h>
 #include <Fonts/FreeMono12pt7b.h>
 #include <Fonts/FreeSans9pt7b.h>
 // #include <UnixTime.h>
+
+
 
 
 // #include <rawBMP_arrays.h>
@@ -29,6 +34,7 @@ printOWM_icons owmIcon = printOWM_icons(&tft);
 const char* ssid = "Telia-47118D";
 const char* password = "0C94C28B5D";
 String openWeatherMapApiKey = "7c28bdf205051aa2ce610d67d648c55c";
+
 String city = "Södertälje"; //NOTE: Might need to ö. check later
 String countryCode = "SE";
 String latitude = "59.20";
