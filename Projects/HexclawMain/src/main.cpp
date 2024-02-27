@@ -1,18 +1,24 @@
 
-#define useWiFi     true
+#define useWiFi     false
 #define useTFT      false
 #define useOLED     true
-#define useAccel    true
+#define useAccel    false
+
+
 
 
 #include <Arduino.h>
+
+#if useWiFi
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#endif
 // #include <Adafruit_Sensor.h>
 
+#if useAccel
 #include <Wire.h>
 #include <Adafruit_ADXL345_U.h>
-
+#endif
 
 #if useTFT
     #include <tft_inclinometer.hpp>
@@ -33,10 +39,10 @@
 #endif
 
 #if useWiFi
-    const char*ssid="Telia-47118D";
-    const char*password="0C94C28B5D";
-    // const char *ssid="Stockholms_stadsbibliotek";
-    // const char *password="stockholm";
+    // const char*ssid="Telia-47118D";
+    // const char*password="0C94C28B5D";
+    const char *ssid="Stockholms_stadsbibliotek";
+    const char *password="stockholm";
 
     WiFiUDP Udp;
     unsigned int localUdpPort=53;//localporttolistenon
@@ -52,6 +58,9 @@ int frames;
 
 
 void setup() {
+    #if useAccel && !useOLED
+    Wire.begin(14, 12);
+    #endif
     Serial.begin(115200);
     Serial.flush();
     // Wire.setClock(400000); //experimental
@@ -82,6 +91,14 @@ void setup() {
     Serial.println();
     #if useWiFi
         Serial.printf("Connecting to %s",ssid);
+        #if useOLED
+            oledInclinometer.printText(
+                "Connecting to "+String(ssid),
+                5,
+                5,
+                2
+            );
+        #endif
         WiFi.mode(WIFI_STA);
         WiFi.begin(ssid, password);
         int blinkCount=0;
@@ -102,8 +119,20 @@ void setup() {
             delay(10);
         }
         Serial.println("connected");
+        #if useOLED
+            oledInclinometer.printText(
+                "\nconnected",
+                5, 5, 2, false
+            );
+        #endif
         Udp.begin(localUdpPort);
         Serial.printf("Now listening at IP %s, UDPport %d\n",WiFi.localIP().toString().c_str(), localUdpPort);
+        #if useOLED
+            oledInclinometer.printText(
+                "Now listeing at IP "+WiFi.localIP().toString()+", UDPport "+String(localUdpPort)+"\n",
+                5, 5, 2, true
+            );
+        #endif
     #endif
     digitalWrite(D8,HIGH);
     pinMode(0,INPUT_PULLUP);
@@ -215,6 +244,12 @@ void loop() {
     #if !useAccel
         angle+=10;
         if(angle>360) angle=0;
+    #endif
+    #if !useAccel && !useTFT && !useOLED && !useWiFi
+        digitalWrite(D8, HIGH);
+        delay(1000);
+        digitalWrite(D8, LOW);
+        delay(900);
     #endif
 }
 
