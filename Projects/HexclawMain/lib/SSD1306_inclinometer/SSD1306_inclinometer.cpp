@@ -8,12 +8,14 @@ float oledInclinometer_SSD1306::toDegrees(float radians) { return float(radians*
 oledInclinometer_SSD1306::oledInclinometer_SSD1306():
 display(SSD1306_SCREEN_WIDTH, SSD1306_SCREEN_HEIGHT, &Wire, OLED_RESET)
 {
+    // blinkSignal(D8, 3);
     Serial.println(F("--oledInclinometer_SSD1306::constructor() called."));
     displayPtr = &display;
     pointerInitialized = false;
     setup();
 }
 oledInclinometer_SSD1306::oledInclinometer_SSD1306(Adafruit_SSD1306 *oled_pointer) {
+    // blinkSignal(D8, 3);
     Serial.println(F("--oledinclinometer_SSD1306::construtor(*) called."));
     displayPtr = oled_pointer;
     pointerInitialized = true;
@@ -36,6 +38,7 @@ void oledInclinometer_SSD1306::printText(
 }
 
 void oledInclinometer_SSD1306::setup() {
+    // blinkSignal(D8, 6, 100);
     Serial.println(F("--oledInclinometer_SSD1306::setup() called."));
     Wire.begin(14, 12);
 
@@ -154,7 +157,7 @@ void oledInclinometer_SSD1306::update() {
     drawRoll();
     drawPitch();
     if(!pointerInitialized) display.display();
-    else if(pointerInitialized) displayPtr->display()
+    else if(pointerInitialized) displayPtr->display();
 }
 void oledInclinometer_SSD1306::update(float xAccel, float yAccel, float zAccel) {
     setAccel(xAccel, yAccel, zAccel);

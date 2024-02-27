@@ -1,10 +1,9 @@
 
 #define useWiFi     false
 #define useTFT      false
-#define useOLED     true
-#define useAccel    false
-
-
+#define useOLED     false
+#define useOLED_ptr false
+#define useAccel    true
 
 
 #include <Arduino.h>
@@ -28,7 +27,12 @@
 #endif
 #if useOLED
     #include <SSD1306_inclinometer.hpp>
-    oledInclinometer_SSD1306 oledInclinometer;
+    // #if useOLED_ptr
+    //     Adafruit_SSD1306 display(SSD1306_SCREEN_WIDTH, SSD1306_SCREEN_HEIGHT, &Wire, OLED_RESET);
+    //     oledInclinometer_SSD1306 oledInclinometer(&display);
+    // #elif !useOLED_ptr
+        oledInclinometer_SSD1306 oledInclinometer;
+    // #endif
 #endif
 
 #if useAccel
@@ -57,6 +61,8 @@ String oldStr0, oldStr1;
 int frames;
 
 
+void blinkSignal(int pin, int times, int delay_ms=1000);
+
 void setup() {
     #if useAccel && !useOLED
     Wire.begin(14, 12);
@@ -66,6 +72,7 @@ void setup() {
     // Wire.setClock(400000); //experimental
 
     pinMode(D8,OUTPUT);
+    blinkSignal(D8, 10, 100);
     digitalWrite(D8,LOW);
     
 
@@ -251,5 +258,15 @@ void loop() {
         digitalWrite(D8, LOW);
         delay(900);
     #endif
+}
+
+
+void blinkSignal(int pin, int times, int delay_ms) {
+    for(int i=0; i<times; i++) {
+        digitalWrite(pin, HIGH);
+        delay(delay_ms);
+        digitalWrite(pin, LOW);
+        delay(delay_ms);
+    }
 }
 
