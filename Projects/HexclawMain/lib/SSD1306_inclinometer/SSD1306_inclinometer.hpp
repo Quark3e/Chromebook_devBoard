@@ -21,12 +21,12 @@ class oledInclinometer_SSD1306 {
 
     bool pointerInitialized = false;
 
-    int rollPos[2]      = {65, 5};
-    int pitchPos[2]     = {65, 20};
+    int rollPos[2]      = {5, 5};
+    int pitchPos[2]     = {65, 5};
     int accelPos[3][2]  = {
-        {5, 5},
-        {5, 15},
-        {5, 25},
+        {5, 20},
+        {5, 30},
+        {5, 40},
     };
     public:
     float offset_accel[3] = {0, 0, 0};

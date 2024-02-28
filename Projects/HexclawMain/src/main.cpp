@@ -1,9 +1,14 @@
 
 #define useWiFi     false
 #define useTFT      false
-#define useOLED     false
-#define useOLED_ptr false
+#define useOLED     true
+#define useOLED_ptr true
 #define useAccel    true
+
+#define oled_debug false
+
+bool accel_useFilter    = true;
+float accel_filter[3]   = {0.1, 0.1, 0.1};
 
 
 #include <Arduino.h>
@@ -27,12 +32,14 @@
 #endif
 #if useOLED
     #include <SSD1306_inclinometer.hpp>
-    // #if useOLED_ptr
-    //     Adafruit_SSD1306 display(SSD1306_SCREEN_WIDTH, SSD1306_SCREEN_HEIGHT, &Wire, OLED_RESET);
-    //     oledInclinometer_SSD1306 oledInclinometer(&display);
-    // #elif !useOLED_ptr
-        oledInclinometer_SSD1306 oledInclinometer;
-    // #endif
+    #if useOLED_ptr
+        Adafruit_SSD1306 display = Adafruit_SSD1306(SSD1306_SCREEN_WIDTH, SSD1306_SCREEN_HEIGHT, &Wire, OLED_RESET);
+        #if !oled_debug
+            oledInclinometer_SSD1306 oledInclinometer = oledInclinometer_SSD1306(&display);
+        #endif
+    #elif !useOLED_ptr
+        oledInclinometer_SSD1306 oledInclinometer{};
+    #endif
 #endif
 
 #if useAccel
@@ -64,8 +71,25 @@ int frames;
 void blinkSignal(int pin, int times, int delay_ms=1000);
 
 void setup() {
-    #if useAccel && !useOLED
+    #if oled_debug
+    while(!display.begin(SSD1306_SWITCHCAPVCC, SSD1306_SCREEN_ADDRESS)){
+        Serial.println(F("SSD1306 allocation in oled_debug failed"));
+        delay(1000);
+    }
     Wire.begin(14, 12);
+    display.display();
+    display.clearDisplay();
+    
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(2, 2);
+    display.print("oled_debug");
+
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(5, 20);
+    display.print("-test");
+    display.display();
     #endif
     Serial.begin(115200);
     Serial.flush();
@@ -95,6 +119,7 @@ void setup() {
         }
     #endif
 
+    // Wire.begin(14, 12);
     Serial.println();
     #if useWiFi
         Serial.printf("Connecting to %s",ssid);
@@ -163,10 +188,19 @@ void readAccelerometer() {
 
     accel.getEvent(&event);
 
-    Y_out = -event.acceleration.x/10;
-    X_out = -event.acceleration.y/10;
-    Z_out = event.acceleration.z/10;
-
+    float new_x = event.acceleration.x/10;
+    float new_y = event.acceleration.y/10;
+    float new_z = event.acceleration.z/10;
+    if(accel_useFilter) {
+        X_out = accel_filter[0]*new_x + (1-accel_filter[0])*X_out;
+        Y_out = accel_filter[1]*new_y + (1-accel_filter[1])*Y_out;
+        Z_out = accel_filter[2]*new_z + (1-accel_filter[2])*Z_out;
+    }
+    else if (!accel_useFilter) {
+        X_out = event.acceleration.x/10;
+        Y_out = event.acceleration.y/10;
+        Z_out = event.acceleration.z/10;
+    }
     totStr = "read ["+String(X_out,2)+" "+String(Y_out,2)+" "+String(Z_out,2)+"]";
 
     Serial.println(totStr);
@@ -190,7 +224,7 @@ void loop() {
             cos(radians(45))
         );
     #endif
-    #if useAccel && useOLED
+    #if useAccel && useOLED && !oled_debug
         oledInclinometer.update(X_out, Y_out, Z_out);
     #elif !useAccel && useOLED
         oledInclinometer.update(
