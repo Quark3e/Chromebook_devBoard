@@ -1,11 +1,11 @@
 
-#define useWiFi     false
+#define useWiFi     true
 #define useTFT      false
 #define useOLED     true
 #define useOLED_ptr true
 #define useAccel    true
 
-#define oled_debug false
+#define oled_debug  false
 
 bool accel_useFilter    = true;
 float accel_filter[3]   = {0.5, 0.5, 0.5};
@@ -50,10 +50,11 @@ float accel_filter[3]   = {0.5, 0.5, 0.5};
 #endif
 
 #if useWiFi
-    // const char*ssid="Telia-47118D";
-    // const char*password="0C94C28B5D";
-    const char *ssid="Stockholms_stadsbibliotek";
-    const char *password="stockholm";
+    // const char *ssid="Telia-47118D";
+    const char *ssid="Telia5GHz-47118D";
+    const char *password="0C94C28B5D";
+    // const char *ssid="Stockholms_stadsbibliotek";
+    // const char *password="stockholm";
 
     WiFiUDP Udp;
     unsigned int localUdpPort=53;//localporttolistenon
@@ -125,24 +126,59 @@ void setup() {
         Serial.printf("Connecting to %s",ssid);
         #if useOLED
             oledInclinometer.printText(
-                "Connecting to "+String(ssid),
+                "Connecting to:",
                 5,
                 5,
-                2
+                1
             );
+            oledInclinometer.printText(
+                "\""+String(ssid)+"\"",
+                5,
+                16,
+                1,
+                false
+            );
+            oledInclinometer.printText(
+                "-connecting ",
+                5,
+                27,
+                1,
+                false
+            );
+            char oled_WiFiwaitingText[256];
+            char oled_WiFiwaitingSymbols[4] = {'-', '\\', '|', '/'};
         #endif
         WiFi.mode(WIFI_STA);
         WiFi.begin(ssid, password);
         int blinkCount=0;
         while(WiFi.status()!=WL_CONNECTED){
-            if(blinkCount==4)digitalWrite(D8,HIGH);
+            if(blinkCount==3) digitalWrite(D8,HIGH);
             delay(500);
             Serial.print(".");
+            #if useOLED
+                // int totLen = 0;
+                // for(int ii=0; ii<blinkCount; ii++) {
+                //     oled_WiFiwaitingText[ii*2]      = '.';
+                //     oled_WiFiwaitingText[ii*2+1]    = ' ';
+                //     totLen+=ii*2+1;
+                // }
+                // if(blinkCount==0) {
+                //     for(int ii=0; ii=blinkCount*2; ii++) {
+                //         oled_WiFiwaitingText[ii]  = ' ';
+                //         totLen+=ii;
+                //     }
+                // }
+                // oled_WiFiwaitingText[totLen+1]  = ' ';
+                oled_WiFiwaitingText[0] = oled_WiFiwaitingSymbols[blinkCount];
+                display.fillRect(80, 27, 20, 20, SSD1306_BLACK);
+                oledInclinometer.printText(String(oled_WiFiwaitingText), 80, 27, 1, false);
+            #endif
+            blinkCount++;
             if(blinkCount==4){
                 digitalWrite(D8,LOW);
                 blinkCount=0;
             }
-            blinkCount++;
+            // blinkCount++;
         }
         for(int i=0;i<3;i++){
             digitalWrite(D8,HIGH);
@@ -154,7 +190,7 @@ void setup() {
         #if useOLED
             oledInclinometer.printText(
                 "\nconnected",
-                5, 5, 2, false
+                5, 30, 1, false
             );
         #endif
         Udp.begin(localUdpPort);
@@ -162,7 +198,7 @@ void setup() {
         #if useOLED
             oledInclinometer.printText(
                 "Now listeing at IP "+WiFi.localIP().toString()+", UDPport "+String(localUdpPort)+"\n",
-                5, 5, 2, true
+                5, 40, 1, true
             );
         #endif
     #endif

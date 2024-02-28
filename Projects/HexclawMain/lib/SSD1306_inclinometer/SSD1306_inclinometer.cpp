@@ -30,12 +30,24 @@ void oledInclinometer_SSD1306::printText(
     int textSize,
     bool clearDisp
 ) {
-    if(clearDisp) display.clearDisplay();
-    display.setTextSize(textSize);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(posX, posY);
-    display.print(text);
-    display.display();
+    if(!pointerInitialized) {
+        if(clearDisp) display.clearDisplay();
+        
+        display.setTextSize(textSize);
+        display.setTextColor(SSD1306_WHITE);
+        display.setCursor(posX, posY);
+        display.print(text);
+        display.display();
+    }
+    else if(pointerInitialized) {
+        if(clearDisp) displayPtr->clearDisplay();
+
+        displayPtr->setTextSize(textSize);
+        displayPtr->setTextColor(SSD1306_WHITE);
+        displayPtr->setCursor(posX, posY);
+        displayPtr->print(text);
+        displayPtr->display();
+    }
 }
 
 void oledInclinometer_SSD1306::setup() {
