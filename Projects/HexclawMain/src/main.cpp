@@ -8,7 +8,7 @@
 #define oled_debug false
 
 bool accel_useFilter    = true;
-float accel_filter[3]   = {0.1, 0.1, 0.1};
+float accel_filter[3]   = {0.5, 0.5, 0.5};
 
 
 #include <Arduino.h>
@@ -188,8 +188,8 @@ void readAccelerometer() {
 
     accel.getEvent(&event);
 
-    float new_x = event.acceleration.x/10;
-    float new_y = event.acceleration.y/10;
+    float new_x = -event.acceleration.x/10;
+    float new_y = -event.acceleration.y/10;
     float new_z = event.acceleration.z/10;
     if(accel_useFilter) {
         X_out = accel_filter[0]*new_x + (1-accel_filter[0])*X_out;
