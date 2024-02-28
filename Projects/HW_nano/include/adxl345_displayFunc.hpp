@@ -4,11 +4,11 @@
 
 
 #include <Adafruit_Sensor.h>
+#include <Adafruit_ADXL345_U.h>
 
-
-void displaySensorDetails(){
+void displaySensorDetails(Adafruit_ADXL345_Unified *accelPtr) {
     sensor_t sensor;
-    accel.getSensor(&sensor);
+    accelPtr->getSensor(&sensor);
     Serial.println("------------------------------------");
     Serial.print("Sensor: "); Serial.println(sensor.name);
     Serial.print("DriverVer: "); Serial.println(sensor.version);
@@ -21,9 +21,9 @@ void displaySensorDetails(){
     delay(500);
 } 
 
-void displayDataRate(){ 
+void displayDataRate(Adafruit_ADXL345_Unified *accelPtr) { 
     Serial.print("DataRate:");
-    switch(accel.getDataRate()) {
+    switch(accelPtr->getDataRate()) {
         case ADXL345_DATARATE_3200_HZ:
         Serial.print("3200");
         break;
@@ -79,10 +79,10 @@ void displayDataRate(){
     Serial.println("Hz");
 }
 
-void displayRange(void){
+void displayRange(Adafruit_ADXL345_Unified *accelPtr) {
     Serial.print("Range:+/-");
 
-    switch(accel.getRange()) {
+    switch(accelPtr->getRange()) {
         case ADXL345_RANGE_16_G: 
         Serial.print("16");
         break;

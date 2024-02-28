@@ -3,6 +3,11 @@
 #define H_TFT_INCLINOMETER
 
 
+#define TFT_RST		4		// TFT RST	pin is connected to NodeMCU pin D4 (GPIO02)
+#define TFT_CS		8		// TFT CS	pin is connected to NodeMCU pin D3 (GPIO00)
+#define TFT_DC		6 //EXPERIMENTAL: WORKS: 2		// TFT DC	pin is connected to NodeMCU pin D2 (GPIO04)
+
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 
