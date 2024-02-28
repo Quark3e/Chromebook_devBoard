@@ -63,20 +63,18 @@ void oledInclinometer_SSD1306::setup() {
             Serial.println(F("SSD1306 allocation failed"));
             delay(750);
         }
+        // display.setRotation(2);
 
+        return;
         display.display();
-        delay(2000);
         display.clearDisplay();
-
-        display.drawPixel(10, 10, SSD1306_WHITE);
-        display.display();
-        delay(2000);
     }
     else if(pointerInitialized) {
         while(!displayPtr->begin(SSD1306_SWITCHCAPVCC, SSD1306_SCREEN_ADDRESS)) {
             Serial.println(F("SSD1306 allocation failed"));
             delay(750);
         }
+        // displayPtr->setRotation(2);
 
         return;
         displayPtr->display();

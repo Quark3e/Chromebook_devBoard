@@ -139,7 +139,7 @@ void setup() {
                 false
             );
             oledInclinometer.printText(
-                "-connecting ",
+                " -connecting...",
                 5,
                 27,
                 1,
@@ -170,8 +170,8 @@ void setup() {
                 // }
                 // oled_WiFiwaitingText[totLen+1]  = ' ';
                 oled_WiFiwaitingText[0] = oled_WiFiwaitingSymbols[blinkCount];
-                display.fillRect(80, 27, 20, 20, SSD1306_BLACK);
-                oledInclinometer.printText(String(oled_WiFiwaitingText), 80, 27, 1, false);
+                display.fillRect(100, 27, 20, 20, SSD1306_BLACK);
+                oledInclinometer.printText(String(oled_WiFiwaitingText), 100, 27, 1, false);
             #endif
             blinkCount++;
             if(blinkCount==4){
