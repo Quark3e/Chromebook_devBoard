@@ -1,7 +1,7 @@
 
 
 #define useAccel    true
-#define useScr      false
+#define useScr      true
 
 /*
 whichScr =
@@ -9,6 +9,7 @@ whichScr =
 1   oled    SSD1306
 */
 #define whichScr    1
+
 
 /*
 whichAccel =
@@ -62,7 +63,9 @@ float accelLim[3] = {
     0
 };
 
-
+String negativeSpace(int inp);
+String negativeSpace(float inp, int decimalPl);
+String negativeSpace(String inp);
 
 float toDegrees(float radians) { return(radians*180)/M_PI; }
 
@@ -123,6 +126,15 @@ void setup() {
             mpuAccel.setMotionInterrupt(true);
         #endif
     #endif
+    #if useScr
+        #if whichScr==0
+
+        #elif whichScr==1
+            display.fillRect(0, 0, 128, 32, SSD1306_BLACK);
+            oledInclinometer.printText("setup() init.", 5, 5, 1, true);
+        #endif
+    #endif
+
 
     Serial.println();
 
@@ -170,33 +182,44 @@ String totStr;
             sensors_event_t mpu_a, mpu_g, mpu_temp;
 
             mpuAccel.getEvent(&mpu_a, &mpu_g, &mpu_temp);
+
+            X_out = mpu_a.acceleration.x/10;
+            Y_out = mpu_a.acceleration.y/10;
+            Z_out = mpu_a.acceleration.z/10;
+
+            X_gyr = mpu_g.gyro.x;
+            Y_gyr = mpu_g.gyro.y;
+            Z_gyr = mpu_g.gyro.z;
+
             if(printResult) {
-                Serial.print("AccelX:");
-                Serial.print(String(mpu_a.acceleration.x/10, 1));
+                Serial.print("{a_x:");
+                Serial.print(negativeSpace(X_out, 1));
                 Serial.print(",");
-                Serial.print("AccelY:");
-                Serial.print(String(mpu_a.acceleration.y/10, 1));
+                Serial.print(" a_y:");
+                Serial.print(negativeSpace(Y_out, 1));
                 Serial.print(",");
-                Serial.print("AccelZ:");
-                Serial.print(String(mpu_a.acceleration.z/10, 1));
-                Serial.print(", ");
-                Serial.print("GyroX:");
-                Serial.print(String(mpu_g.gyro.x, 2));
+                Serial.print(" a_z:");
+                Serial.print(negativeSpace(Z_out, 1));
+                Serial.print("}, ");
+                Serial.print("{g_x:");
+                Serial.print(negativeSpace(X_gyr, 2));
                 Serial.print(",");
-                Serial.print("GyroY:");
-                Serial.print(String(mpu_g.gyro.y, 2));
+                Serial.print(" g_y:");
+                Serial.print(negativeSpace(Y_gyr, 2));
                 Serial.print(",");
-                Serial.print("GyroZ:");
-                Serial.print(String(mpu_g.gyro.z, 2));
-                Serial.print(", ");
+                Serial.print(" g_z:");
+                Serial.print(negativeSpace(Z_gyr, 2));
+                Serial.print("}, ");
                 Serial.print("Temp:");
-                Serial.print(String(mpu_temp.temperature, 2));
+                Serial.print(negativeSpace(mpu_temp.temperature, 2));
                 Serial.println("");
             }
         // }
     }
     #endif
 #endif
+
+
 
 void loop() {
     digitalWrite(ledPin, LOW);
@@ -207,6 +230,13 @@ void loop() {
             readAccelerometer(true);
             delay(10);
         #endif
+        #if useScr
+            #if whichScr==0
+                inclinometer.update(Y_out, X_out, Z_out);
+            #elif whichScr==1
+                oledInclinometer.update(X_out, Y_out, Z_out);
+            #endif
+        #endif
     #endif
     #if !useAccel && (useScr && whichScr==0)
         inclinometer.update(
@@ -214,9 +244,6 @@ void loop() {
             sin(radians(45)*sin(radians(angle+90))),
             cos(radians(45))
         );
-    #endif
-    #if (useAccel && whichAccel==0) && (useScr && whichScr==0)
-        inclinometer.update(Y_out, X_out, Z_out);
     #endif
 
     #if useScr && whichScr==0
@@ -240,3 +267,42 @@ void loop() {
     #endif
 }
 
+
+/// @brief Add an empty space char in front of string incase the String number is >=0
+/// @param inp integer input
+/// @return modified inp
+String negativeSpace(int inp) {
+    String result = "";
+    if(inp>=0) {
+        result = " "+String(inp);
+    }
+    else {
+        result = String(inp);
+    }
+    return result;
+}/// @brief Add an empty space char in front of string incase the String number is >=0
+/// @param inp floating point input
+/// @return modified inp
+String negativeSpace(float inp, int decimalPl=1) {
+    String result = "";
+    if(inp>=0) {
+        result = " "+String(inp, decimalPl);
+    }
+    else {
+        result = String(inp, decimalPl);
+    }
+    return result;
+}
+/// @brief Add an empty space char in front of string incase the String number is >=0
+/// @param inp string input
+/// @return modified inp
+String negativeSpace(String inp) {
+    String result = "";
+    if(inp.toFloat()>=0) {
+        result = " "+inp;
+    }
+    else {
+        result = inp;
+    }
+    return result;
+}
