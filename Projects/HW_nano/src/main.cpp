@@ -65,6 +65,11 @@ float accelLim[3] = {
     1.5,
     0
 };
+float accelOffset[3] = {
+    0,
+    -0.14,
+    0
+};
 
 
 float toDegrees(float radians) { return(radians*180)/M_PI; }
@@ -79,10 +84,13 @@ void setup() {
     Serial.flush();
     // Wire.setClock(400000); //experimental
     #if useScr
-        #if scrDebug
-            display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-        #elif !scrDebug
-            oledInclinometer = new oledInclinometer_SSD1306(&display);
+        #if whichScr==1
+            display.setRotation(2);
+            #if scrDebug
+                display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+            #elif !scrDebug
+                oledInclinometer = new oledInclinometer_SSD1306(&display);
+            #endif
         #endif
     #endif
     pinMode(ledPin, OUTPUT);
@@ -191,9 +199,9 @@ String totStr;
 
             mpuAccel.getEvent(&mpu_a, &mpu_g, &mpu_temp);
 
-            X_out = mpu_a.acceleration.x/10;
-            Y_out = mpu_a.acceleration.y/10;
-            Z_out = mpu_a.acceleration.z/10;
+            X_out = mpu_a.acceleration.x/10 + accelOffset[1];
+            Y_out = mpu_a.acceleration.y/10 + accelOffset[0];
+            Z_out = mpu_a.acceleration.z/10 + accelOffset[2];
 
             X_gyr = mpu_g.gyro.x;
             Y_gyr = mpu_g.gyro.y;
