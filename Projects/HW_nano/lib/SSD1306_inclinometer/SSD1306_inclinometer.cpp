@@ -1,6 +1,7 @@
 
 #include <SSD1306_inclinometer.hpp>
 
+
 float oledInclinometer_SSD1306::toRadians(float degrees) { return float(degrees*M_PI)/180; }
 float oledInclinometer_SSD1306::toDegrees(float radians) { return float(radians*180)/M_PI; }
 
@@ -17,7 +18,7 @@ display(SSD1306_SCREEN_WIDTH, SSD1306_SCREEN_HEIGHT, &Wire, OLED_RESET)
 }
 oledInclinometer_SSD1306::oledInclinometer_SSD1306(Adafruit_SSD1306 *oled_pointer) {
     // blinkSignal(D8, 3);
-    Serial.println(F("--oledinclinometer_SSD1306::construtor(*) called."));
+    Serial.println("--oledinclinometer_SSD1306::construtor(*) called.");
     displayPtr = oled_pointer;
     pointerInitialized = true;
     setup();
@@ -88,26 +89,26 @@ void oledInclinometer_SSD1306::drawAccel() {
         display.setTextColor(SSD1306_WHITE);
         
         display.setCursor(accelPos[0][0], accelPos[0][1]);
-        display.print("G_x: "+String(accel[0],2));
+        display.print("x: "+negativeSpace(accel[0],2));
 
         display.setCursor(accelPos[1][0], accelPos[1][1]);
-        display.print("G_y: "+String(accel[1],2));
+        display.print("y: "+negativeSpace(accel[1],2));
 
         display.setCursor(accelPos[2][0], accelPos[2][1]);
-        display.print("G_z: "+String(accel[2],2));
+        display.print("z: "+negativeSpace(accel[2],2));
     }
     else if(pointerInitialized) {
         displayPtr->setTextSize(1);
         displayPtr->setTextColor(SSD1306_WHITE);
 
         displayPtr->setCursor(accelPos[0][0], accelPos[0][1]);
-        displayPtr->print("G_x:"+String(accel[0],2));
+        displayPtr->print("x:"+negativeSpace(accel[0],2));
 
         displayPtr->setCursor(accelPos[1][0], accelPos[1][1]);
-        displayPtr->print("G_y:"+String(accel[1],2));
+        displayPtr->print("y:"+negativeSpace(accel[1],2));
 
         displayPtr->setCursor(accelPos[2][0], accelPos[2][1]);
-        displayPtr->print("G_z:"+String(accel[2],2));
+        displayPtr->print("z:"+negativeSpace(accel[2],2));
     }
 }
 void oledInclinometer_SSD1306::drawRoll() {
@@ -116,14 +117,14 @@ void oledInclinometer_SSD1306::drawRoll() {
         display.setTextColor(SSD1306_WHITE);
 
         display.setCursor(rollPos[0], rollPos[1]);
-        display.print("Roll:"+String(orient[0],1));
+        display.print("R:"+negativeSpace(orient[0],1));
     }
     else if(pointerInitialized) {
         displayPtr->setTextSize(1);
         displayPtr->setTextColor(SSD1306_WHITE);
 
         displayPtr->setCursor(rollPos[0], rollPos[1]);
-        displayPtr->print("Roll:"+String(orient[0],1));
+        displayPtr->print("R:"+negativeSpace(orient[0],1));
     }
 }
 void oledInclinometer_SSD1306::drawPitch() {
@@ -132,14 +133,14 @@ void oledInclinometer_SSD1306::drawPitch() {
         display.setTextColor(SSD1306_WHITE);
 
         display.setCursor(pitchPos[0], pitchPos[1]);
-        display.print("Pitch:"+String(orient[1],1));
+        display.print("P:"+negativeSpace(orient[1],1));
     }
     else if(pointerInitialized) {
         displayPtr->setTextSize(1);
         displayPtr->setTextColor(SSD1306_WHITE);
 
         displayPtr->setCursor(pitchPos[0], pitchPos[1]);
-        displayPtr->print("Pitch:"+String(orient[1],1));
+        displayPtr->print("P:"+negativeSpace(orient[1],1));
     }
 }
 
@@ -171,4 +172,45 @@ void oledInclinometer_SSD1306::update() {
 void oledInclinometer_SSD1306::update(float xAccel, float yAccel, float zAccel) {
     setAccel(xAccel, yAccel, zAccel);
     update();
+}
+
+
+/// @brief Add an empty space char in front of string incase the String number is >=0
+/// @param inp integer input
+/// @return modified inp
+String negativeSpace(int inp) {
+    String result = "";
+    if(inp>=0) {
+        result = " "+String(inp);
+    }
+    else {
+        result = String(inp);
+    }
+    return result;
+}
+/// @brief Add an empty space char in front of string incase the String number is >=0
+/// @param inp floating point input
+/// @return modified inp
+String negativeSpace(float inp, int decimalPl=1) {
+    String result = "";
+    if(inp>=0) {
+        result = " "+String(inp, decimalPl);
+    }
+    else {
+        result = String(inp, decimalPl);
+    }
+    return result;
+}
+/// @brief Add an empty space char in front of string incase the String number is >=0
+/// @param inp string input
+/// @return modified inp
+String negativeSpace(String inp) {
+    String result = "";
+    if(inp.toFloat()>=0) {
+        result = " "+inp;
+    }
+    else {
+        result = inp;
+    }
+    return result;
 }

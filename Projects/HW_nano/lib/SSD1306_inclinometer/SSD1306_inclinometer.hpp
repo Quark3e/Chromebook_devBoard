@@ -9,6 +9,12 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+
+String negativeSpace(int inp);
+String negativeSpace(float inp, int decimalPl);
+String negativeSpace(String inp);
+
+
 #define SSD1306_SCREEN_WIDTH    128 //OLED display width in pixels
 #define SSD1306_SCREEN_HEIGHT   32 //OLED display height in pixels (though note: ssd1306 is 32, but works with 64 for some reason)
 
@@ -21,12 +27,12 @@ class oledInclinometer_SSD1306 {
 
     bool pointerInitialized = false;
 
-    int rollPos[2]      = {5, 5};
-    int pitchPos[2]     = {65, 5};
+    int rollPos[2]      = {60, 1};
+    int pitchPos[2]     = {60, 11};
     int accelPos[3][2]  = {
-        {5, 20},
-        {5, 30},
-        {5, 40},
+        {5, 1},
+        {5, 11},
+        {5, 22},
     };
     public:
     float offset_accel[3] = {0, 0, 0};

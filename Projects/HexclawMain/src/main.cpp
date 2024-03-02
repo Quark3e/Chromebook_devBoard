@@ -50,8 +50,8 @@ float accel_filter[3]   = {0.5, 0.5, 0.5};
 #endif
 
 #if useWiFi
-    // const char *ssid="Telia-47118D";
-    const char *ssid="Telia5GHz-47118D";
+    const char *ssid="Telia-47118D";
+    // const char *ssid="Telia5GHz-47118D";
     const char *password="0C94C28B5D";
     // const char *ssid="Stockholms_stadsbibliotek";
     // const char *password="stockholm";

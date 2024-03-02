@@ -2,6 +2,7 @@
 
 #define useAccel    true
 #define useScr      true
+#define scrDebug    false
 
 /*
 whichScr =
@@ -47,8 +48,10 @@ whichAccel =
     #elif whichScr  == 1
         #include <SSD1306_inclinometer.hpp>
 
-        Adafruit_SSD1306 display = Adafruit_SSD1306(SSD1306_SCREEN_WIDTH, SSD1306_SCREEN_HEIGHT, &Wire, OLED_RESET);
-        oledInclinometer_SSD1306 oledInclinometer = oledInclinometer_SSD1306(&display);
+        Adafruit_SSD1306 display = Adafruit_SSD1306(4);
+        #if !scrDebug
+            oledInclinometer_SSD1306 *oledInclinometer;
+        #endif
     #endif
 #endif
 
@@ -63,9 +66,6 @@ float accelLim[3] = {
     0
 };
 
-String negativeSpace(int inp);
-String negativeSpace(float inp, int decimalPl);
-String negativeSpace(String inp);
 
 float toDegrees(float radians) { return(radians*180)/M_PI; }
 
@@ -78,7 +78,13 @@ void setup() {
     Serial.begin(115200);
     Serial.flush();
     // Wire.setClock(400000); //experimental
-
+    #if useScr
+        #if scrDebug
+            display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+        #elif !scrDebug
+            oledInclinometer = new oledInclinometer_SSD1306(&display);
+        #endif
+    #endif
     pinMode(ledPin, OUTPUT);
     digitalWrite(ledPin, LOW);
     delay(500);
@@ -130,8 +136,10 @@ void setup() {
         #if whichScr==0
 
         #elif whichScr==1
-            display.fillRect(0, 0, 128, 32, SSD1306_BLACK);
-            oledInclinometer.printText("setup() init.", 5, 5, 1, true);
+            // display.fillRect(0, 0, 128, 32, SSD1306_BLACK);
+            #if !scrDebug
+                oledInclinometer->printText("setup() init.", 5, 5, 1, true);
+            #endif
         #endif
     #endif
 
@@ -220,7 +228,6 @@ String totStr;
 #endif
 
 
-
 void loop() {
     digitalWrite(ledPin, LOW);
     #if useAccel
@@ -228,13 +235,25 @@ void loop() {
             readAccelerometer();
         #elif whichAccel==1
             readAccelerometer(true);
-            delay(10);
         #endif
         #if useScr
             #if whichScr==0
                 inclinometer.update(Y_out, X_out, Z_out);
             #elif whichScr==1
-                oledInclinometer.update(X_out, Y_out, Z_out);
+                #if !scrDebug
+                    oledInclinometer->update(-Y_out, X_out, Z_out);
+                // #elif scrDebug
+                //     display.clearDisplay();
+                //     display.setCursor(10, 5);
+                //     display.setTextSize(2);
+                //     display.setTextColor(WHITE);
+                //     display.print("Hello");
+                    
+                //     display.setCursor(10, 23);
+                //     display.setTextSize(1);
+                //     display.print("World");
+                //     delay(1000);
+                #endif
             #endif
         #endif
     #endif
@@ -246,18 +265,34 @@ void loop() {
         );
     #endif
 
-    #if useScr && whichScr==0
-        inclinometer.drawText(oldStr0, 0, 0, ST7735_BLACK, 1);
-        inclinometer.drawText(oldStr1, 70, 0, ST7735_BLACK, 1);
+    #if useScr
+        #if whichScr==0
+            inclinometer.drawText(oldStr0, 0, 0, ST7735_BLACK, 1);
+            inclinometer.drawText(oldStr1, 70, 0, ST7735_BLACK, 1);
 
-        oldStr0 = "FPS:"+String(float(frames*1000)/(millis()-t1),2);
-        oldStr1 = String((millis()-t1))+"ms";
+            oldStr0 = "FPS:"+String(float(frames*1000)/(millis()-t1),2);
+            oldStr1 = String((millis()-t1))+"ms";
 
-        inclinometer.drawText(oldStr0, 0, 0, ST7735_RED, 1, false);
-        inclinometer.drawText(oldStr1, 70, 0, ST7735_RED, 1, false);
-        
-        t1 = millis();
-        frames=1;
+            inclinometer.drawText(oldStr0, 0, 0, ST7735_RED, 1, false);
+            inclinometer.drawText(oldStr1, 70, 0, ST7735_RED, 1, false);
+            
+            t1 = millis();
+            frames=1;
+        #elif whichScr==1
+            #if scrDebug
+                display.clearDisplay();
+                display.setCursor(10, 5);
+                display.setTextSize(2);
+                display.setTextColor(WHITE);
+                display.print("Hello");
+                
+                display.setCursor(10, 23);
+                display.setTextSize(1);
+                display.print("World");
+                display.display();
+                delay(1000);
+            #endif
+        #endif
     #endif
     // else frames++;
 
@@ -268,41 +303,3 @@ void loop() {
 }
 
 
-/// @brief Add an empty space char in front of string incase the String number is >=0
-/// @param inp integer input
-/// @return modified inp
-String negativeSpace(int inp) {
-    String result = "";
-    if(inp>=0) {
-        result = " "+String(inp);
-    }
-    else {
-        result = String(inp);
-    }
-    return result;
-}/// @brief Add an empty space char in front of string incase the String number is >=0
-/// @param inp floating point input
-/// @return modified inp
-String negativeSpace(float inp, int decimalPl=1) {
-    String result = "";
-    if(inp>=0) {
-        result = " "+String(inp, decimalPl);
-    }
-    else {
-        result = String(inp, decimalPl);
-    }
-    return result;
-}
-/// @brief Add an empty space char in front of string incase the String number is >=0
-/// @param inp string input
-/// @return modified inp
-String negativeSpace(String inp) {
-    String result = "";
-    if(inp.toFloat()>=0) {
-        result = " "+inp;
-    }
-    else {
-        result = inp;
-    }
-    return result;
-}
