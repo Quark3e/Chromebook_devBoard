@@ -39,7 +39,7 @@ class oledInclinometer_SSD1306 {
     oledInclinometer_SSD1306();
     oledInclinometer_SSD1306(Adafruit_SSD1306 *oled_pointer);
 
-    void printText(String text, int posX, int posY, int textSize=1, bool clearDisp=true);
+    void printText(String text, int posX, int posY, int textSize=1, bool clearDisp=true, bool callDisplay=true);
     void setup();
     void drawAccel();
     void drawRoll();

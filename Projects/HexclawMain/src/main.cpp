@@ -1,9 +1,9 @@
 
 #define useWiFi     true
 #define useTFT      false
-#define useOLED     true
+#define useOLED     false
 #define useOLED_ptr true
-#define useAccel    true
+#define useAccel    false
 
 #define oled_debug  false
 
@@ -16,6 +16,7 @@ float accel_filter[3]   = {0.5, 0.5, 0.5};
 #if useWiFi
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+
 #endif
 // #include <Adafruit_Sensor.h>
 
@@ -150,6 +151,7 @@ void setup() {
         #endif
         WiFi.mode(WIFI_STA);
         WiFi.begin(ssid, password);
+        WiFi.setPhyMode(WIFI_PHY_MODE_11B);
         int blinkCount=0;
         while(WiFi.status()!=WL_CONNECTED){
             if(blinkCount==3) digitalWrite(D8,HIGH);
@@ -194,6 +196,10 @@ void setup() {
             );
         #endif
         Udp.begin(localUdpPort);
+        // WiFi.setAutoReconnect(true);
+        // WiFi.persistent(true);
+
+        // Udp.setPhyMode(WIFI_PHY_MODE_11B);
         Serial.printf("Now listening at IP %s, UDPport %d\n",WiFi.localIP().toString().c_str(), localUdpPort);
         #if useOLED
             oledInclinometer.printText(
@@ -212,7 +218,7 @@ void setup() {
     t1=millis();
 }
 
-float X_out=0.1, Y_out=0.1, Z_out=0.1;
+float X_out=0.069, Y_out=0.069, Z_out=0.069;
 String filterToggle="on";
 int angle=0;
 
@@ -262,6 +268,8 @@ void loop() {
     #endif
     #if useAccel && useOLED && !oled_debug
         oledInclinometer.update(X_out, Y_out, Z_out);
+        oledInclinometer.printText(WiFi.localIP().toString(), 50, 55, 1, false, false);
+        oledInclinometer.printText(String(localUdpPort), 70, 45, 1, false, false);
     #elif !useAccel && useOLED
         oledInclinometer.update(
             sin(radians(45)*sin(radians(angle))),
@@ -296,12 +304,15 @@ void loop() {
             int len = Udp.read(incomingPacket,255);
             if(len>0){incomingPacket[len]=0;}
 
+            #if useAccel
             sensors_event_t event;
             accel.getEvent(&event);
 
             X_out = event.acceleration.x/10;
             Y_out = event.acceleration.y/10;
             Z_out = event.acceleration.z/10;
+
+            #endif
 
             String resultStr="{"+
             String(X_out)+":"+
