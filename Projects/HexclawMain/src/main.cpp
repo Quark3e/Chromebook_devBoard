@@ -1,9 +1,9 @@
 
 #define useWiFi     true
-#define useTFT      false
+#define useTFT      true
 #define useOLED     false
 #define useOLED_ptr true
-#define useAccel    false
+#define useAccel    true
 
 #define oled_debug  false
 
