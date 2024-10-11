@@ -74,24 +74,24 @@ void blinkSignal(int pin, int times, int delay_ms=1000);
 
 void setup() {
     #if oled_debug
-    while(!display.begin(SSD1306_SWITCHCAPVCC, SSD1306_SCREEN_ADDRESS)){
-        Serial.println(F("SSD1306 allocation in oled_debug failed"));
-        delay(1000);
-    }
-    Wire.begin(14, 12);
-    display.display();
-    display.clearDisplay();
-    
-    display.setTextSize(2);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(2, 2);
-    display.print("oled_debug");
+        while(!display.begin(SSD1306_SWITCHCAPVCC, SSD1306_SCREEN_ADDRESS)){
+            Serial.println(F("SSD1306 allocation in oled_debug failed"));
+            delay(1000);
+        }
+        Wire.begin(14, 12);
+        display.display();
+        display.clearDisplay();
+        
+        display.setTextSize(2);
+        display.setTextColor(SSD1306_WHITE);
+        display.setCursor(2, 2);
+        display.print("oled_debug");
 
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(5, 20);
-    display.print("-test");
-    display.display();
+        display.setTextSize(1);
+        display.setTextColor(SSD1306_WHITE);
+        display.setCursor(5, 20);
+        display.print("-test");
+        display.display();
     #endif
     Serial.begin(115200);
     Serial.flush();
