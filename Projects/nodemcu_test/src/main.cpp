@@ -1,3 +1,14 @@
+/**
+ * @file main.cpp
+ * @author your name (you@domain.com)
+ * @brief WebApi weather station with screen
+ * @version 0.1
+ * @date 2024-11-06
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include <Arduino.h>
 
 #include <Adafruit_GFX.h>      // include Adafruit graphics library

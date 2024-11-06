@@ -1,6 +1,6 @@
 
 #define useWiFi     true
-#define useTFT      true
+#define useTFT      false
 #define useOLED     false
 #define useOLED_ptr true
 #define useAccel    true
@@ -10,6 +10,7 @@
 bool accel_useFilter    = true;
 float accel_filter[3]   = {0.5, 0.5, 0.5};
 
+bool dynamicBool = useAccel;
 
 #include <Arduino.h>
 
@@ -58,7 +59,7 @@ float accel_filter[3]   = {0.5, 0.5, 0.5};
     // const char *password="stockholm";
 
     WiFiUDP Udp;
-    unsigned int localUdpPort=53;//localporttolistenon
+    unsigned int localUdpPort=1089;//localporttolistenon
     char incomingPacket[255];//bufferforincomingpackets
     char replyPacket[]="Hi there! Got the message:-)";//areplystringtosendback
 #endif
@@ -297,7 +298,7 @@ void loop() {
 
     #if useWiFi 
         int packetSize=Udp.parsePacket();
-        if(packetSize) {//receiveincomingUDPpackets
+        if(packetSize) {//receive incoming UDPpackets
             digitalWrite(D8, LOW);
             if(digitalRead(0)==HIGH) filterToggle="off;";
             else filterToggle="on ;";
