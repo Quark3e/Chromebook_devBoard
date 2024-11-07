@@ -1,7 +1,7 @@
 
 #define useWiFi     true
 #define useTFT      false
-#define useOLED     false
+#define useOLED     true
 #define useOLED_ptr true
 #define useAccel    true
 
@@ -59,6 +59,11 @@ bool dynamicBool = useAccel;
     // const char *password="stockholm";
 
     WiFiUDP Udp;
+    /**
+     * The port for which the udp server will be running on:
+     *  - `1087` for HW364A-esp8266 board
+     *  - `1089` for nodemcu esp8266 board
+     */
     unsigned int localUdpPort=1089;//localporttolistenon
     char incomingPacket[255];//bufferforincomingpackets
     char replyPacket[]="Hi there! Got the message:-)";//areplystringtosendback
@@ -141,9 +146,13 @@ void setup() {
                 false
             );
             oledInclinometer.printText(
+                "port: "+String(localUdpPort),
+                5, 27, 1, false
+            );
+            oledInclinometer.printText(
                 " -connecting...",
                 5,
-                27,
+                38,
                 1,
                 false
             );
@@ -204,12 +213,26 @@ void setup() {
         Serial.printf("Now listening at IP %s, UDPport %d\n",WiFi.localIP().toString().c_str(), localUdpPort);
         #if useOLED
             oledInclinometer.printText(
-                "Now listeing at IP "+WiFi.localIP().toString()+", UDPport "+String(localUdpPort)+"\n",
-                5, 40, 1, true
+                "Now listening at IP ", //+WiFi.localIP().toString()+", UDPport "+String(localUdpPort)+"\n",
+                5, 5, 1, true
             );
+            oledInclinometer.printText(
+                WiFi.localIP().toString(),
+                5, 16, 1, false
+            );
+            oledInclinometer.printText(
+                "port: " + String(localUdpPort),
+                5, 27, 1, false
+            );
+            for(int i=0; i<3; i++) {
+                digitalWrite(D8, HIGH);
+                delay(1000);
+                digitalWrite(D8, LOW);
+                delay(1000);
+            }
         #endif
     #endif
-    digitalWrite(D8,HIGH);
+    digitalWrite(D8, LOW);
     pinMode(0,INPUT_PULLUP);
     // inclinometer = tftInclinometer_ST7735(&tftObj);
     #if useTFT
@@ -299,19 +322,19 @@ void loop() {
     #if useWiFi 
         int packetSize=Udp.parsePacket();
         if(packetSize) {//receive incoming UDPpackets
-            digitalWrite(D8, LOW);
+            digitalWrite(D8, HIGH);
             if(digitalRead(0)==HIGH) filterToggle="off;";
             else filterToggle="on ;";
             int len = Udp.read(incomingPacket,255);
             if(len>0){incomingPacket[len]=0;}
 
             #if useAccel
-            sensors_event_t event;
-            accel.getEvent(&event);
+            // sensors_event_t event;
+            // accel.getEvent(&event);
 
-            X_out = event.acceleration.x/10;
-            Y_out = event.acceleration.y/10;
-            Z_out = event.acceleration.z/10;
+            // X_out = event.acceleration.x/10;
+            // Y_out = event.acceleration.y/10;
+            // Z_out = event.acceleration.z/10;
 
             #endif
 
@@ -327,7 +350,7 @@ void loop() {
             Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
             Udp.write(newReplyPack);
             Udp.endPacket();
-            digitalWrite(D8, HIGH);
+            digitalWrite(D8, LOW);
         }
     #endif
     #if !useAccel
