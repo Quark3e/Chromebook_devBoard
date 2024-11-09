@@ -49,8 +49,8 @@ class oledInclinometer_SSD1306 {
 
     void setAccel(float x, float y, float z);
 
-    void update();
-    void update(float xAccel, float yAccel, float zAccel);
+    void update(bool clearDisp=true, bool callDisplay=true);
+    void update(float xAccel, float yAccel, float zAccel, bool clearDisp=true, bool callDisplay=true);
 };
 
 

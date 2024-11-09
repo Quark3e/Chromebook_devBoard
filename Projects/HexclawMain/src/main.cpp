@@ -1,29 +1,38 @@
 
 #define useWiFi     true
 #define useTFT      false
-#define useOLED     true
+#define useOLED     false
 #define useOLED_ptr true
 #define useAccel    true
 
 #define oled_debug  false
 
-bool accel_useFilter    = true;
-float accel_filter[3]   = {0.5, 0.5, 0.5};
+/**
+ * ID for using the different accelerometer boards.
+ *  `0` - ADXL345
+ *  `1` - MPU605
+ * 
+ */
+#define ACCEL__BOARD    1
 
-bool dynamicBool = useAccel;
 
 #include <Arduino.h>
 
 #if useWiFi
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
-
+    #include <ESP8266WiFi.h>
+    #include <WiFiUdp.h>
+    bool dynamic_true = true;
 #endif
 // #include <Adafruit_Sensor.h>
 
 #if useAccel
-#include <Wire.h>
-#include <Adafruit_ADXL345_U.h>
+    #include <Wire.h>
+#if ACCEL__BOARD==0
+    #include <Adafruit_ADXL345_U.h>
+#elif ACCEL__BOARD==1
+    #include <Adafruit_MPU6050.h>
+    #include <Adafruit_Sensor.h>
+#endif
 #endif
 
 #if useTFT
@@ -45,10 +54,38 @@ bool dynamicBool = useAccel;
 #endif
 
 #if useAccel
-    /*Assign an unique ID to this sensor at the same time*/
-    Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
+    // Struct for holding x, y, values
+    struct val_out {
+        float x;
+        float y;
+        float z;
+        val_out(float par_x, float par_y, float par_z):
+        x(par_x), y(par_y), z(par_z) {}
+        String exprt(String sep=":") {
+            String str = "";
+            str += String(x) + ":" + String(y) + ":" + String(z);
+            return str;
+        }
+    };
+    struct val_out A_out{0.1, 0.1, 0.1};
 
+    bool accel_useFilter    = false;
+    bool gyro__useFilter    = false;
+    float accel_filter[3]   = {0.1, 0.1, 0.1};
+    float gyro__filter[3]   = {0.1, 0.1, 0.1};
+
+#if ACCEL__BOARD==0
+    Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
     #include <displayFunc.hpp>
+
+    // float X_out=0.069, Y_out=0.069, Z_out=0.069;
+#elif ACCEL__BOARD==1
+    Adafruit_MPU6050 mpu;
+
+    struct val_out G_out{0.1, 0.1, 0.1};
+    float board_temp = 0;
+
+#endif
 #endif
 
 #if useWiFi
@@ -109,27 +146,42 @@ void setup() {
     
 
     #if useAccel
+    #if ACCEL__BOARD==0
         if(!accel.begin()) {
             /*TherewasaproblemdetectingtheADXL345...checkyourconnections*/
-            Serial.println("Ooops, no ADXL345 detected...Check your wiring!");
+            Serial.println("No ADXL345 board detected. Check the wiring!");
             while(1);
-        
-            
-            /*Settherangetowhateverisappropriateforyourproject*/
-            accel.setRange(ADXL345_RANGE_16_G);
-            
-            /*Displaysomebasicinformationonthissensor*/
-            displaySensorDetails();
-            
-            /*Displayadditionalsettings(outsidethescopeofsensor_t)*/
-            displayDataRate();
-            displayRange();
         }
+        /*Settherangetowhateverisappropriateforyourproject*/
+        accel.setRange(ADXL345_RANGE_16_G);
+        
+        /*Displaysomebasicinformationonthissensor*/
+        displaySensorDetails();
+        
+        /*Displayadditionalsettings(outsidethescopeofsensor_t)*/
+        displayDataRate();
+        displayRange();
+
+    #elif ACCEL__BOARD==1
+        if(!mpu.begin()) {
+            Serial.println("No MPU6050 board detected. Check the wiring!");
+            while(1);
+        }
+        mpu.setHighPassFilter(MPU6050_HIGHPASS_0_63_HZ);
+        mpu.setMotionDetectionThreshold(1);
+        mpu.setMotionDetectionDuration(20);
+        mpu.setInterruptPinLatch(true);
+        mpu.setInterruptPinPolarity(true);
+        mpu.setMotionInterrupt(true);
+    #endif
     #endif
 
     // Wire.begin(14, 12);
     Serial.println();
     #if useWiFi
+        // if(digitalRead(0)==LOW) {
+        //     dynamic_true = false;
+        // }
         Serial.printf("Connecting to %s",ssid);
         #if useOLED
             oledInclinometer.printText(
@@ -242,14 +294,13 @@ void setup() {
     t1=millis();
 }
 
-float X_out=0.069, Y_out=0.069, Z_out=0.069;
-String filterToggle="on";
 int angle=0;
-
+String filterToggle="on";
 String totStr;
 
 #if useAccel
 void readAccelerometer() {
+#if ACCEL__BOARD==0
     sensors_event_t event;
 
     accel.getEvent(&event);
@@ -258,111 +309,147 @@ void readAccelerometer() {
     float new_y = -event.acceleration.y/10;
     float new_z = event.acceleration.z/10;
     if(accel_useFilter) {
-        X_out = accel_filter[0]*new_x + (1-accel_filter[0])*X_out;
-        Y_out = accel_filter[1]*new_y + (1-accel_filter[1])*Y_out;
-        Z_out = accel_filter[2]*new_z + (1-accel_filter[2])*Z_out;
+        A_out.x = accel_filter[0]*new_x + (1-accel_filter[0])*A_out.x;
+        A_out.y = accel_filter[1]*new_y + (1-accel_filter[1])*A_out.y;
+        A_out.z = accel_filter[2]*new_z + (1-accel_filter[2])*A_out.z;
     }
     else if (!accel_useFilter) {
-        X_out = event.acceleration.x/10;
-        Y_out = event.acceleration.y/10;
-        Z_out = event.acceleration.z/10;
+        A_out.x = event.acceleration.x/10;
+        A_out.y = event.acceleration.y/10;
+        A_out.z = event.acceleration.z/10;
     }
-    totStr = "read ["+String(X_out,2)+" "+String(Y_out,2)+" "+String(Z_out,2)+"]";
+    // totStr = "read ["+String(A_out.x, 2)+" "+String(A_out.y, 2)+" "+String(A_out.z, 2)+"]";
 
-    Serial.println(totStr);
+#elif ACCEL__BOARD==1
+    sensors_event_t accl, gyro, temp;
 
+    mpu.getEvent(&accl, &gyro, &temp);
+    if(accel_useFilter) {
+        float new_Ax = -accl.acceleration.x/10;
+        float new_Ay = -accl.acceleration.y/10;
+        float new_Az = accl.acceleration.z/10;
+        A_out.x = accel_filter[0]*new_Ax + (1-accel_filter[0])*A_out.x;
+        A_out.y = accel_filter[1]*new_Ay + (1-accel_filter[1])*A_out.y;
+        A_out.z = accel_filter[2]*new_Az + (1-accel_filter[2])*A_out.z;
+    }
+    else if (!accel_useFilter) {
+        A_out.x = accl.acceleration.x/10;
+        A_out.y = accl.acceleration.y/10;
+        A_out.z = accl.acceleration.z/10;
+    }
+    if(gyro__useFilter) {
+        float new_Gx = gyro.gyro.x;
+        float new_Gy = gyro.gyro.y;
+        float new_Gz = gyro.gyro.z;
+        G_out.x = gyro__filter[0]*new_Gx + (1-gyro__filter[0])*G_out.x;
+        G_out.y = gyro__filter[1]*new_Gy + (1-gyro__filter[1])*G_out.y;
+        G_out.z = gyro__filter[2]*new_Gz + (1-gyro__filter[2])*G_out.z;
+    }
+    else if (!gyro__useFilter) {
+        G_out.x = gyro.gyro.x;
+        G_out.y = gyro.gyro.y;
+        G_out.z = gyro.gyro.z;
+    }
+    board_temp = temp.temperature;
+    // totStr = "read ["+
+    //     String(A_out.x, 2)+" "
+    //     "]";
+#endif
+
+    // Serial.println(totStr);
 }
 #endif
 
 
 void loop() {
   
-    #if useAccel
-        readAccelerometer();
-    #endif
+#if useAccel
+    readAccelerometer();
+#endif
 
-    #if useAccel && useTFT
-        inclinometer.update(X_out, Y_out, Z_out);
-    #elif !useAccel && useTFT
-        inclinometer.update(
-            sin(radians(45)*sin(radians(angle))),
-            sin(radians(45)*sin(radians(angle+90))),
-            cos(radians(45))
-        );
-    #endif
-    #if useAccel && useOLED && !oled_debug
-        oledInclinometer.update(X_out, Y_out, Z_out);
-        oledInclinometer.printText(WiFi.localIP().toString(), 50, 55, 1, false, false);
-        oledInclinometer.printText(String(localUdpPort), 70, 45, 1, false, false);
-    #elif !useAccel && useOLED
-        oledInclinometer.update(
-            sin(radians(45)*sin(radians(angle))),
-            sin(radians(45)*sin(radians(angle+90))),
-            cos(radians(45))
-        );
-    #endif
+#if useAccel && useTFT
+    inclinometer.update(X_out, Y_out, Z_out);
+#elif !useAccel && useTFT
+    inclinometer.update(
+        sin(radians(45)*sin(radians(angle))),
+        sin(radians(45)*sin(radians(angle+90))),
+        cos(radians(45))
+    );
+#endif
+#if useAccel && useOLED && !oled_debug
+#if ACCEL__BOARD==0
+#elif ACCEL__BOARD==1
+    oledInclinometer.printText(String(board_temp,1)+" C", 80, 38, 1, true, false);
+#endif
+#if useWiFi
+    oledInclinometer.printText(WiFi.localIP().toString(), 50, 55, 1, false, false);
+    oledInclinometer.printText(String(localUdpPort), 70, 45, 1, false, false);
+#endif
+
+    oledInclinometer.update(A_out.x, A_out.y, A_out.z, false);
+#elif !useAccel && useOLED
+    oledInclinometer.update(
+        sin(radians(45)*sin(radians(angle))),
+        sin(radians(45)*sin(radians(angle+90))),
+        cos(radians(45))
+    );
+#endif
 
 
-    #if useTFT
-        inclinometer.drawText(oldStr0, 0, 0, ST7735_BLACK, 1);
-        inclinometer.drawText(oldStr1, 70, 0, ST7735_BLACK, 1);
+#if useTFT
+    inclinometer.drawText(oldStr0, 0, 0, ST7735_BLACK, 1);
+    inclinometer.drawText(oldStr1, 70, 0, ST7735_BLACK, 1);
 
-        oldStr0 = "FPS:"+String(float(frames*1000)/(millis()-t1),2);
-        oldStr1 = String((millis()-t1))+"ms";
+    oldStr0 = "FPS:"+String(float(frames*1000)/(millis()-t1),2);
+    oldStr1 = String((millis()-t1))+"ms";
 
-        inclinometer.drawText(oldStr0, 0, 0, ST7735_RED, 1, false);
-        inclinometer.drawText(oldStr1, 70, 0, ST7735_RED, 1, false);
+    inclinometer.drawText(oldStr0, 0, 0, ST7735_RED, 1, false);
+    inclinometer.drawText(oldStr1, 70, 0, ST7735_RED, 1, false);
+    
+    t1 = millis();
+    frames=1;
+#endif
+
+#if useWiFi 
+    int packetSize=Udp.parsePacket();
+    if(packetSize) {//receive incoming UDPpackets
+        digitalWrite(D8, HIGH);
+        if(digitalRead(0)==HIGH) filterToggle="off;";
+        else filterToggle="on ;";
+        int len = Udp.read(incomingPacket,255);
+        if(len>0){incomingPacket[len]=0;}
+
+        String resultStr = "{";
+#if useAccel
+        resultStr += A_out.exprt();
+#if ACCEL__BOARD==0
+#elif ACCEL__BOARD==1
+        resultStr += ";" + G_out.exprt();
+#endif
+#endif
+
+        resultStr += "}"+filterToggle;//if"off":toggletiltfilteroff
         
-        t1 = millis();
-        frames=1;
-    #endif
-    // else frames++;
+        int newPackLen = resultStr.length()+1;
+        char newReplyPack[newPackLen];
+        resultStr.toCharArray(newReplyPack,newPackLen);
 
-
-    #if useWiFi 
-        int packetSize=Udp.parsePacket();
-        if(packetSize) {//receive incoming UDPpackets
-            digitalWrite(D8, HIGH);
-            if(digitalRead(0)==HIGH) filterToggle="off;";
-            else filterToggle="on ;";
-            int len = Udp.read(incomingPacket,255);
-            if(len>0){incomingPacket[len]=0;}
-
-            #if useAccel
-            // sensors_event_t event;
-            // accel.getEvent(&event);
-
-            // X_out = event.acceleration.x/10;
-            // Y_out = event.acceleration.y/10;
-            // Z_out = event.acceleration.z/10;
-
-            #endif
-
-            String resultStr="{"+
-            String(X_out)+":"+
-            String(Y_out)+":"+
-            String(Z_out)+"}"+filterToggle;//if"off":toggletiltfilteroff
-            
-            int newPackLen = resultStr.length()+1;
-            char newReplyPack[newPackLen];
-            resultStr.toCharArray(newReplyPack,newPackLen);
-
-            Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-            Udp.write(newReplyPack);
-            Udp.endPacket();
-            digitalWrite(D8, LOW);
-        }
-    #endif
-    #if !useAccel
+        Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+        Udp.write(newReplyPack);
+        Udp.endPacket();
+        digitalWrite(D8, LOW);
+    }
+#endif
+#if !useAccel
         angle+=10;
         if(angle>360) angle=0;
-    #endif
-    #if !useAccel && !useTFT && !useOLED && !useWiFi
+#endif
+#if !useAccel && !useTFT && !useOLED && !useWiFi
         digitalWrite(D8, HIGH);
         delay(1000);
         digitalWrite(D8, LOW);
         delay(900);
-    #endif
+#endif
 }
 
 

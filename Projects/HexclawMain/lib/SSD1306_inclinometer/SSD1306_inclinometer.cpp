@@ -158,18 +158,23 @@ void oledInclinometer_SSD1306::setAccel(float x, float y, float z) {
     accel[2] = z;
 }
 
-void oledInclinometer_SSD1306::update() {
+void oledInclinometer_SSD1306::update(bool clearDisp, bool callDisplay) {
     // Serial.println("--oledInclinometer_SSD1306::update() called.");
     solveOrients();
-    if(!pointerInitialized) display.clearDisplay();
-    else if(pointerInitialized) displayPtr->clearDisplay();
+    if(clearDisp) {
+        if(!pointerInitialized) display.clearDisplay();
+        else if(pointerInitialized) displayPtr->clearDisplay();
+    }
     drawAccel();
     drawRoll();
     drawPitch();
-    if(!pointerInitialized) display.display();
-    else if(pointerInitialized) displayPtr->display();
+    // this->printText("test", 80, 27, 1, false, false);
+    if(callDisplay) {
+        if(!pointerInitialized) display.display();
+        else if(pointerInitialized) displayPtr->display();
+    }
 }
-void oledInclinometer_SSD1306::update(float xAccel, float yAccel, float zAccel) {
+void oledInclinometer_SSD1306::update(float xAccel, float yAccel, float zAccel, bool clearDisp, bool callDisplay) {
     setAccel(xAccel, yAccel, zAccel);
-    update();
+    update(clearDisp, callDisplay);
 }
