@@ -1,7 +1,7 @@
 
 #define useWiFi     true
 #define useTFT      false
-#define useOLED     false
+#define useOLED     true
 #define useOLED_ptr true
 #define useAccel    true
 
@@ -21,6 +21,9 @@
 #if useWiFi
     #include <ESP8266WiFi.h>
     #include <WiFiUdp.h>
+
+    #define BOOT_WIFIBUTTON D7
+    #define BOOT_WIFILED    D8
     bool dynamic_true = true;
 #endif
 // #include <Adafruit_Sensor.h>
@@ -140,9 +143,12 @@ void setup() {
     Serial.flush();
     // Wire.setClock(400000); //experimental
 
-    pinMode(D8,OUTPUT);
+
+    pinMode(0, INPUT_PULLUP);
+    pinMode(D7, INPUT_PULLUP);
+    pinMode(D8, OUTPUT);
     blinkSignal(D8, 10, 100);
-    digitalWrite(D8,LOW);
+    digitalWrite(D8, LOW);
     
 
     #if useAccel
@@ -179,113 +185,162 @@ void setup() {
     // Wire.begin(14, 12);
     Serial.println();
     #if useWiFi
-        // if(digitalRead(0)==LOW) {
-        //     dynamic_true = false;
-        // }
-        Serial.printf("Connecting to %s",ssid);
-        #if useOLED
-            oledInclinometer.printText(
-                "Connecting to:",
-                5,
-                5,
-                1
-            );
-            oledInclinometer.printText(
-                "\""+String(ssid)+"\"",
-                5,
-                16,
-                1,
-                false
-            );
-            oledInclinometer.printText(
-                "port: "+String(localUdpPort),
-                5, 27, 1, false
-            );
-            oledInclinometer.printText(
-                " -connecting...",
-                5,
-                38,
-                1,
-                false
-            );
-            char oled_WiFiwaitingText[256];
-            char oled_WiFiwaitingSymbols[4] = {'-', '\\', '|', '/'};
-        #endif
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(ssid, password);
-        WiFi.setPhyMode(WIFI_PHY_MODE_11B);
-        int blinkCount=0;
-        while(WiFi.status()!=WL_CONNECTED){
-            if(blinkCount==3) digitalWrite(D8,HIGH);
-            delay(500);
-            Serial.print(".");
-            #if useOLED
-                // int totLen = 0;
-                // for(int ii=0; ii<blinkCount; ii++) {
-                //     oled_WiFiwaitingText[ii*2]      = '.';
-                //     oled_WiFiwaitingText[ii*2+1]    = ' ';
-                //     totLen+=ii*2+1;
-                // }
-                // if(blinkCount==0) {
-                //     for(int ii=0; ii=blinkCount*2; ii++) {
-                //         oled_WiFiwaitingText[ii]  = ' ';
-                //         totLen+=ii;
-                //     }
-                // }
-                // oled_WiFiwaitingText[totLen+1]  = ' ';
-                oled_WiFiwaitingText[0] = oled_WiFiwaitingSymbols[blinkCount];
-                display.fillRect(100, 27, 20, 20, SSD1306_BLACK);
-                oledInclinometer.printText(String(oled_WiFiwaitingText), 100, 27, 1, false);
-            #endif
-            blinkCount++;
-            if(blinkCount==4){
-                digitalWrite(D8,LOW);
-                blinkCount=0;
-            }
-            // blinkCount++;
-        }
-        for(int i=0;i<3;i++){
-            digitalWrite(D8,HIGH);
-            delay(10);
-            digitalWrite(D8,LOW);
-            delay(10);
-        }
-        Serial.println("connected");
-        #if useOLED
-            oledInclinometer.printText(
-                "\nconnected",
-                5, 30, 1, false
-            );
-        #endif
-        Udp.begin(localUdpPort);
-        // WiFi.setAutoReconnect(true);
-        // WiFi.persistent(true);
+        dynamic_true = useWiFi;
+        delay(750);
+        blinkSignal(BOOT_WIFILED, 5, 50);
+        delay(750);
+        if(digitalRead(BOOT_WIFIBUTTON)==LOW) {
+            Serial.println("Wifi mode is off.");
+            dynamic_true = false;
+            blinkSignal(BOOT_WIFILED, 3, 200); // O
+            delay(750);
 
-        // Udp.setPhyMode(WIFI_PHY_MODE_11B);
-        Serial.printf("Now listening at IP %s, UDPport %d\n",WiFi.localIP().toString().c_str(), localUdpPort);
-        #if useOLED
-            oledInclinometer.printText(
-                "Now listening at IP ", //+WiFi.localIP().toString()+", UDPport "+String(localUdpPort)+"\n",
-                5, 5, 1, true
-            );
-            oledInclinometer.printText(
-                WiFi.localIP().toString(),
-                5, 16, 1, false
-            );
-            oledInclinometer.printText(
-                "port: " + String(localUdpPort),
-                5, 27, 1, false
-            );
-            for(int i=0; i<3; i++) {
-                digitalWrite(D8, HIGH);
-                delay(1000);
-                digitalWrite(D8, LOW);
-                delay(1000);
+            blinkSignal(BOOT_WIFILED, 2, 200);
+            delay(200);
+            digitalWrite(BOOT_WIFILED, HIGH);
+            delay(600);
+            digitalWrite(BOOT_WIFILED, LOW);
+            delay(200);
+            digitalWrite(BOOT_WIFILED, HIGH);
+            delay(200);
+            digitalWrite(BOOT_WIFILED, LOW);
+            delay(200);
+
+            delay(750);
+            blinkSignal(BOOT_WIFILED, 2, 200);
+            delay(200);
+            digitalWrite(BOOT_WIFILED, HIGH);
+            delay(600);
+            digitalWrite(BOOT_WIFILED, LOW);
+            delay(200);
+            digitalWrite(BOOT_WIFILED, HIGH);
+            delay(200);
+            digitalWrite(BOOT_WIFILED, LOW);
+            delay(200);
+        }
+        else {
+            Serial.println("Wifi mode is on.");
+            blinkSignal(BOOT_WIFILED, 3, 200);
+            delay(750);
+
+            digitalWrite(BOOT_WIFILED, HIGH);
+            delay(600);
+            digitalWrite(BOOT_WIFILED, LOW);
+            delay(200);
+            digitalWrite(BOOT_WIFILED, HIGH);
+            delay(200);
+            digitalWrite(BOOT_WIFILED, LOW);
+            delay(200+750);
+        }
+        delay(750);
+        blinkSignal(BOOT_WIFILED, 5, 50);
+        delay(100);
+
+        if(dynamic_true) {
+            Serial.printf("Connecting to %s",ssid);
+            #if useOLED
+                oledInclinometer.printText(
+                    "Connecting to:",
+                    5,
+                    5,
+                    1
+                );
+                oledInclinometer.printText(
+                    "\""+String(ssid)+"\"",
+                    5,
+                    16,
+                    1,
+                    false
+                );
+                oledInclinometer.printText(
+                    "port: "+String(localUdpPort),
+                    5, 27, 1, false
+                );
+                oledInclinometer.printText(
+                    " -connecting...",
+                    5,
+                    38,
+                    1,
+                    false
+                );
+                char oled_WiFiwaitingText[256];
+                char oled_WiFiwaitingSymbols[4] = {'-', '\\', '|', '/'};
+            #endif
+            WiFi.mode(WIFI_STA);
+            WiFi.begin(ssid, password);
+            WiFi.setPhyMode(WIFI_PHY_MODE_11B);
+            int blinkCount=0;
+            while(WiFi.status()!=WL_CONNECTED){
+                if(blinkCount==3) digitalWrite(D8,HIGH);
+                delay(500);
+                Serial.print(".");
+                #if useOLED
+                    // int totLen = 0;
+                    // for(int ii=0; ii<blinkCount; ii++) {
+                    //     oled_WiFiwaitingText[ii*2]      = '.';
+                    //     oled_WiFiwaitingText[ii*2+1]    = ' ';
+                    //     totLen+=ii*2+1;
+                    // }
+                    // if(blinkCount==0) {
+                    //     for(int ii=0; ii=blinkCount*2; ii++) {
+                    //         oled_WiFiwaitingText[ii]  = ' ';
+                    //         totLen+=ii;
+                    //     }
+                    // }
+                    // oled_WiFiwaitingText[totLen+1]  = ' ';
+                    oled_WiFiwaitingText[0] = oled_WiFiwaitingSymbols[blinkCount];
+                    display.fillRect(100, 27, 20, 20, SSD1306_BLACK);
+                    oledInclinometer.printText(String(oled_WiFiwaitingText), 100, 27, 1, false);
+                #endif
+                blinkCount++;
+                if(blinkCount==4){
+                    digitalWrite(D8,LOW);
+                    blinkCount=0;
+                }
+                // blinkCount++;
             }
-        #endif
+            for(int i=0;i<3;i++){
+                digitalWrite(D8,HIGH);
+                delay(10);
+                digitalWrite(D8,LOW);
+                delay(10);
+            }
+            Serial.println("connected");
+            #if useOLED
+                oledInclinometer.printText(
+                    "\nconnected",
+                    5, 30, 1, false
+                );
+            #endif
+            Udp.begin(localUdpPort);
+            // WiFi.setAutoReconnect(true);
+            // WiFi.persistent(true);
+
+            // Udp.setPhyMode(WIFI_PHY_MODE_11B);
+            Serial.printf("Now listening at IP %s, UDPport %d\n",WiFi.localIP().toString().c_str(), localUdpPort);
+            #if useOLED
+                oledInclinometer.printText(
+                    "Now listening at IP ", //+WiFi.localIP().toString()+", UDPport "+String(localUdpPort)+"\n",
+                    5, 5, 1, true
+                );
+                oledInclinometer.printText(
+                    WiFi.localIP().toString(),
+                    5, 16, 1, false
+                );
+                oledInclinometer.printText(
+                    "port: " + String(localUdpPort),
+                    5, 27, 1, false
+                );
+                for(int i=0; i<3; i++) {
+                    digitalWrite(D8, HIGH);
+                    delay(1000);
+                    digitalWrite(D8, LOW);
+                    delay(1000);
+                }
+            #endif
+        }
     #endif
     digitalWrite(D8, LOW);
-    pinMode(0,INPUT_PULLUP);
     // inclinometer = tftInclinometer_ST7735(&tftObj);
     #if useTFT
         inclinometer.tftSetup();
@@ -382,8 +437,10 @@ void loop() {
     oledInclinometer.printText(String(board_temp,1)+" C", 80, 38, 1, true, false);
 #endif
 #if useWiFi
-    oledInclinometer.printText(WiFi.localIP().toString(), 50, 55, 1, false, false);
-    oledInclinometer.printText(String(localUdpPort), 70, 45, 1, false, false);
+    if(dynamic_true) {
+        oledInclinometer.printText("192.168.1.118", 5, 51, 1, false, false);
+        oledInclinometer.printText(String(localUdpPort), 95, 51, 1, false, false);
+    }
 #endif
 
     oledInclinometer.update(A_out.x, A_out.y, A_out.z, false);
@@ -411,13 +468,14 @@ void loop() {
 #endif
 
 #if useWiFi 
-    int packetSize=Udp.parsePacket();
-    if(packetSize) {//receive incoming UDPpackets
+    int packetSize = 0;
+    if(dynamic_true) packetSize = Udp.parsePacket();
+    if(dynamic_true && packetSize) {//receive incoming UDPpackets
         digitalWrite(D8, HIGH);
-        if(digitalRead(0)==HIGH) filterToggle="off;";
-        else filterToggle="on ;";
+        // if(digitalRead(0)==HIGH) filterToggle = "off;";
+        // else filterToggle = "on ;";
         int len = Udp.read(incomingPacket,255);
-        if(len>0){incomingPacket[len]=0;}
+        if(len>0) {incomingPacket[len]=0;}
 
         String resultStr = "{";
 #if useAccel
@@ -428,8 +486,12 @@ void loop() {
 #endif
 #endif
 
-        resultStr += "}"+filterToggle;//if"off":toggletiltfilteroff
-        
+        resultStr += "}";//+filterToggle;//if"off":toggletiltfilteroff
+        resultStr +=
+            String(digitalRead(0))  +
+            String(digitalRead(D7)) +
+            ";";
+
         int newPackLen = resultStr.length()+1;
         char newReplyPack[newPackLen];
         resultStr.toCharArray(newReplyPack,newPackLen);
