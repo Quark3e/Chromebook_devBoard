@@ -1,7 +1,7 @@
 
 #define useWiFi     true
 #define useTFT      false
-#define useOLED     true
+#define useOLED     false
 #define useOLED_ptr true
 #define useAccel    true
 
@@ -116,6 +116,11 @@ String oldStr0, oldStr1;
 int frames;
 
 
+// void SIPO();
+// #define latchPin    D4
+// #define dataPin     D3
+// #define clockPin    D5
+
 void blinkSignal(int pin, int times, int delay_ms=1000);
 
 void setup() {
@@ -150,6 +155,10 @@ void setup() {
     blinkSignal(D8, 10, 100);
     digitalWrite(D8, LOW);
     
+    // pinMode(latchPin,   OUTPUT);
+    // pinMode(dataPin,    OUTPUT);
+    // pinMode(clockPin,   OUTPUT);
+
 
     #if useAccel
     #if ACCEL__BOARD==0
@@ -417,7 +426,8 @@ void readAccelerometer() {
 
 
 void loop() {
-  
+    // SIPO();
+
 #if useAccel
     readAccelerometer();
 #endif
@@ -515,6 +525,22 @@ void loop() {
 }
 
 
+// void SIPO() {
+//     // for(int j = 0; j < 256; j++) {
+//     int j = 0;
+//     for(int n=0; n<8; n++) {
+//         j = pow(2, n);
+//         Serial.print("SHIFT: ");
+//         Serial.println(j);
+//         //ground latchPin and hold low for as long as you are transmitting
+//         digitalWrite(latchPin, LOW);
+//         shiftOut(dataPin, clockPin, LSBFIRST, j);
+//         //return the latch pin high to signal chip that it
+//         //no longer needs to listen for information
+//         digitalWrite(latchPin, HIGH);
+//         delay(100);
+//     }
+// }
 void blinkSignal(int pin, int times, int delay_ms) {
     for(int i=0; i<times; i++) {
         digitalWrite(pin, HIGH);
